@@ -2,25 +2,22 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-	<link rel=stylesheet href="style.css" />
 	<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 	<script defer>
 		async function calc(bbox, canvas_el) {
-			console.log(bbox);
-			console.log(canvas_el);
 			var ctx = canvas_el.getContext("2d");
 			let z = bbox.z;
 			for (var x=bbox.xmin; x<=bbox.xmax; x++) {
 				for (var y=bbox.ymin; y<=bbox.ymax; y++) {
 					var img = new Image();
 					var src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
-					console.log(src);
 					img.src = src;
 				    await new Promise(r => img.onload=r, img.src=src);
 					ctx.drawImage(img, (x-bbox.xmin)*256, (y-bbox.ymin)*256);
 				}
 			}
+			console.log(canvas_el.toDataURL("image/png"));
 		}
 	</script>
 </head>
