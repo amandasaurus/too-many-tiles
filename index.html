@@ -9,8 +9,17 @@
 			var canvas_el = document.getElementById('final_image');
 			var ctx = canvas_el.getContext("2d");
 			let z = bbox.z;
-			for (var x=bbox.xmin; x<=bbox.xmax; x++) {
-				for (var y=bbox.ymin; y<=bbox.ymax; y++) {
+			let tile_max = 2**(z-1) + 1;
+			for (var y=bbox.ymin; y<=bbox.ymax; y++) {
+			console.log(y, tile_max);
+				if (y > tile_max) {
+					break;
+				}
+				for (var x=bbox.xmin; x<=bbox.xmax; x++) {
+				console.log(x, tile_max);
+					if (x > tile_max) {
+						break;
+					}
 					var img = new Image();
 					var src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 					img.crossOrigin = "Anonymous";
@@ -40,7 +49,7 @@
 		  xmax: 1,
 		  ymin: 0,
 		  ymax: 1,
-		  z: 1,
+		  z: 0,
 		  get width() { 
 		  	if (this.xmax <= this.xmin) {
 				return 0;
@@ -61,7 +70,7 @@
 			this.ymin *= 2; this.ymax *= 2;
 		  },
 		  zoom_out() {
-			  if (this.z <= 0) { return ; }
+			  if (this.z <= 0) { return; }
 			  this.z--;
 			this.xmin /= 2; this.xmax /= 2;
 			this.ymin /= 2; this.ymax /= 2;
