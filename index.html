@@ -5,27 +5,31 @@
 	<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 	<script defer>
-		async function calc(bbox, canvas_el) {
+		async function update_image(bbox) {
+			var canvas_el = document.getElementById('final_image');
 			var ctx = canvas_el.getContext("2d");
 			let z = bbox.z;
 			for (var x=bbox.xmin; x<=bbox.xmax; x++) {
 				for (var y=bbox.ymin; y<=bbox.ymax; y++) {
 					var img = new Image();
-					var src = `//tile.openstreetmap.org/${z}/${x}/${y}.png`;
+					var src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 					img.crossOrigin = "Anonymous";
 					img.src = src;
 				    await new Promise(r => img.onload=r, img.src=src);
 					ctx.drawImage(img, (x-bbox.xmin)*256, (y-bbox.ymin)*256);
 				}
 			}
+		}
+
+		function make_download_link(bbox) {
+			var canvas_el = document.getElementById("final_image");
 			var image_url = canvas_el.toDataURL("image/png");
 			var dlLink = document.createElement("a");
-			dlLink.download = `tiles-${z}-${bbox.xmin}-${bbox.xmax}-${bbox.ymin}-${bbox.ymax}.png`;
+			dlLink.download = `tiles-z${bbox.z}-x${bbox.xmin}-${bbox.xmax}-y${bbox.ymin}-${bbox.ymax}.png`;
 			dlLink.href = image_url
 			dlLink.dataset.downloadurl = ["image/png", dlLink.download, dlLink.href].join(':');
-			document.getElementById("download_link").appendChild(dlLink);
-			console.log(dlLink);
-			dlLink.click();
+			document.body.append(dlLink);
+		dlLink.click();
 		}
 	</script>
 </head>
@@ -50,22 +54,36 @@
 			} else {
 			  return (this.ymax - this.ymin + 1)*256;
 			}
-		  }
+		  },
+		  zoom_in() {
+			  this.z++;
+			this.xmin *= 2; this.xmax *= 2;
+			this.ymin *= 2; this.ymax *= 2;
+		  },
+		  zoom_out() {
+			  if (this.z <= 0) { return ; }
+			  this.z--;
+			this.xmin /= 2; this.xmax /= 2;
+			this.ymin /= 2; this.ymax /= 2;
+		  },
 	  }
 
 	 }">
 		<div>
-			Zoom: <input type=number x-model="bbox.z" min=0 max=18 width=2>
-			X: <input type=number x-model="bbox.xmin"> - <input type=number x-model="bbox.xmax">
-			Y: <input type=number x-model="bbox.ymin"> - <input type=number x-model="bbox.ymax">
+			Zoom: <span x-text="bbox.z"></span><button @click="bbox.zoom_in(); update_image(bbox);">+</button><button @click="bbox.zoom_out();update_image(bbox);">-</button>
+		</div>
+		<div>
+			X: <span x-text="`${bbox.xmin}-${bbox.xmax}`"></span> move <button @click="bbox.xmin--; bbox.xmin--;; update_image(bbox);">←</button><button @click="bbox.xmin++; bbox.xmin++;; update_image(bbox);">→</button> crop from <button @click="bbox.xmin++; update_image(bbox);">left</button><button @click="bbox.xmax--; update_image(bbox);">right</button> expand <button @click="bbox.xmin--;; update_image(bbox);">left</button><button @click="bbox.xmax++;; update_image(bbox);">right</button>
+		</div>
+		<div>
+			Y: <span x-text="`${bbox.ymin}-${bbox.ymax}`"></span> move <button @click="bbox.ymin--; bbox.ymin--;; update_image(bbox);">↑</button><button @click="bbox.ymin++; bbox.ymin++;; update_image(bbox);">↓</button> crop from <button @click="bbox.ymin++; update_image(bbox);">top</button><button @click="bbox.ymax--; update_image(bbox);">bottom</button> expand <button @click="bbox.ymin--;; update_image(bbox);">top</button><button @click="bbox.ymax++;; update_image(bbox);">bottom</button>
 		</div>
 		<div>
 			Image is <span x-text="bbox.width"></span>×<span x-text="bbox.height"></span> pixels big. 
 		</div>
 
 		<div>
-			<button @click="calc(bbox, document.getElementById('final_image'));">Generate</button>
-			<span id=download_link></span>
+			<button @click="make_download_link(bbox);">download</button>
 		</div>
 		<canvas id=final_image :width="bbox.width" :height="bbox.height">
 		</canvas>
