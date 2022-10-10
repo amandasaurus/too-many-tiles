@@ -11,13 +11,21 @@
 			for (var x=bbox.xmin; x<=bbox.xmax; x++) {
 				for (var y=bbox.ymin; y<=bbox.ymax; y++) {
 					var img = new Image();
-					var src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+					var src = `//tile.openstreetmap.org/${z}/${x}/${y}.png`;
+					img.crossOrigin = "Anonymous";
 					img.src = src;
 				    await new Promise(r => img.onload=r, img.src=src);
 					ctx.drawImage(img, (x-bbox.xmin)*256, (y-bbox.ymin)*256);
 				}
 			}
-			console.log(canvas_el.toDataURL("image/png"));
+			var image_url = canvas_el.toDataURL("image/png");
+			var dlLink = document.createElement("a");
+			dlLink.download = `tiles-${z}-${bbox.xmin}-${bbox.xmax}-${bbox.ymin}-${bbox.ymax}.png`;
+			dlLink.href = image_url
+			dlLink.dataset.downloadurl = ["image/png", dlLink.download, dlLink.href].join(':');
+			document.getElementById("download_link").appendChild(dlLink);
+			console.log(dlLink);
+			dlLink.click();
 		}
 	</script>
 </head>
@@ -57,6 +65,7 @@
 
 		<div>
 			<button @click="calc(bbox, document.getElementById('final_image'));">Generate</button>
+			<span id=download_link></span>
 		</div>
 		<canvas id=final_image :width="bbox.width" :height="bbox.height">
 		</canvas>
